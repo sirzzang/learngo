@@ -1,55 +1,51 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-
-	"github.com/sirzzang/learngo/accounts"
-	"github.com/sirzzang/learngo/mydict"
+	"net/http"
 )
+
+var errRequestFailed = errors.New("request failed")
 
 func main() {
 
-	/** Account Example **/
-	account := accounts.NewAccount("sirzzang") // make a new struct
-	fmt.Println(account)                       // string representation
-	fmt.Println(account.Owner(), account.Balance())
-	account.Deposit(100)
-	fmt.Println(account.Balance()) // 100
-	// account.Withdraw(1000)         // error returned, nothing happens
-	// err := account.Withdraw(10) // check error
-	// if err != nil {
-	// 	log.Fatalln(err) // 2022/10/28 22:44:05 can't withdraw
-	// }
-	// fmt.Println(account.Balance())
+	var results map[string]string = make(map[string]string)
 
-	account.ChangeOwner("eraser")
-	fmt.Println(account.Owner(), account.Balance())
+	urls := []string{
+		"https://www.airbnb.com/",
+		"https://www.google.com/",
+		"https://www.amazon.com/",
+		"https://www.reddit.com/",
+		"https://www.google.com/",
+		"https://soundcloud.com/",
+		"https://www.facebook.com/",
+		"https://www.instagram.com/",
+		"https://www.github.com/",
+		"https://academy.nomadcoders.co/",
+	}
 
-	/** Dictionary Example **/
-	dictionary := mydict.Dictionary{}
-	dictionary["hello"] = "hello"
-	fmt.Println(dictionary)
-	// definition, err := dictionary.Search("hello")
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
-	// fmt.Println(definition)
-	err := dictionary.Add("hi", "greeting")
-	if err != nil {
-		fmt.Println("err: ", err)
+	for _, url := range urls {
+		result := "OK"
+		err := hitURL(url)
+		if err != nil {
+			result = "FAIL"
+		}
+		results[url] = result
 	}
-	err2 := dictionary.Update("hi", "newGreeting")
-	if err2 != nil {
-		fmt.Println("err2: ", err2)
-	}
-	err3 := dictionary.Delete("hi")
-	if err3 != nil {
-		fmt.Println("err3: ", err3)
-	}
-	defintion, err4 := dictionary.Search("hi")
-	if err4 != nil {
-		fmt.Println("err4: ", err4)
-	}
-	fmt.Println(defintion)
 
+	for url, result := range results {
+		fmt.Println(url, result)
+	}
+
+}
+
+func hitURL(url string) error {
+	fmt.Println("Checking:", url)
+	resp, err := http.Get(url)
+	if err != nil || resp.StatusCode >= 400 {
+		fmt.Println(url, ":", err, resp.StatusCode)
+		return errRequestFailed
+	}
+	return nil
 }
