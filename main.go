@@ -2,22 +2,53 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 )
+
+type requestResult struct {
+	url    string
+	status string
+}
 
 func main() {
 
-	c := make(chan string)
+	results := make(map[string]string)
+	c := make(chan requestResult)
 
-	people := [5]string{"sirzzang", "eraser", "ieere", "ruby", "sir"}
-	for _, person := range people {
-		go isCool(person, c) // two goroutines
+	urls := []string{
+		"https://www.airbnb.com/",
+		"https://www.google.com/",
+		"https://www.amazon.com/",
+		"https://www.reddit.com/",
+		"https://www.google.com/",
+		"https://soundcloud.com/",
+		"https://www.facebook.com/",
+		"https://www.instagram.com/",
+		"https://academy.nomadcoders.co/",
+		"https://www.github.com/",
 	}
-	for i := 0; i < len(people); i++ {
-		fmt.Print("waiting for: ", i, "\n")
-		fmt.Println("received: " + <-c) // blocking operation
+
+	for _, url := range urls {
+		go hitURL(url, c)
 	}
+
+	for i := 0; i < len(urls); i++ {
+		result := <-c
+		results[result.url] = result.status
+	}
+
+	for url, status := range results {
+		fmt.Println(url, status)
+	}
+
 }
 
-func isCool(person string, c chan string) {
-	c <- person + " is cool" // send true value to channel
+func hitURL(url string, c chan<- requestResult /** send only channel **/) {
+	fmt.Println("Checking: " + url)
+	resp, err := http.Get(url)
+	if err != nil || resp.StatusCode >= 400 {
+		c <- requestResult{url: url, status: "FAIL"}
+	} else {
+		c <- requestResult{url: url, status: "OK"}
+	}
 }
