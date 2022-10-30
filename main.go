@@ -13,11 +13,11 @@ func main() {
 		go isCool(person, c) // two goroutines
 	}
 	for i := 0; i < len(people); i++ {
-		fmt.Println("received: " + <-c)
+		fmt.Print("waiting for: ", i, "\n")
+		fmt.Println("received: " + <-c) // blocking operation
 	}
 }
 
 func isCool(person string, c chan string) {
 	c <- person + " is cool" // send true value to channel
-	fmt.Println("sending message")
 }
